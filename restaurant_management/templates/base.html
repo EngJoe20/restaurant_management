@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Restaurant Management System{% endblock %}</title>
+    {% load static %}
     
     <!-- Bootstrap CSS -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
@@ -11,13 +12,61 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.1/font/bootstrap-icons.min.css" rel="stylesheet">
     <!-- Custom CSS -->
     <link href="{% static 'css/custom.css' %}" rel="stylesheet">
-    {% load static %}
     
+    <style>
+        :root {
+            --primary-color: #dc3545;
+            --secondary-color: #6c757d;
+            --success-color: #198754;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+            --info-color: #0dcaf0;
+        }
+
+        .navbar {
+            background-color: var(--primary-color) !important;
+        }
+
+        .btn-primary,
+        .bg-primary {
+            background-color: var(--primary-color) !important;
+            border-color: var(--primary-color) !important;
+        }
+
+        .btn-outline-primary {
+            border-color: var(--primary-color) !important;
+            color: var(--primary-color) !important;
+        }
+
+        .btn-outline-primary:hover {
+            background-color: var(--primary-color) !important;
+            color: #fff !important;
+        }
+
+        .nav-link.active {
+            font-weight: bold;
+            color: var(--primary-color) !important;
+        }
+
+        .page-link {
+            color: var(--primary-color);
+        }
+        .page-item.active .page-link {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        footer {
+            background-color: #f8f9fa;
+            border-top: 1px solid #eaeaea;
+        }
+    </style>
+
     {% block extra_css %}{% endblock %}
 </head>
 <body>
     <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top shadow-sm">
+    <nav class="navbar navbar-expand-lg navbar-dark fixed-top shadow-sm">
         <div class="container">
             <a class="navbar-brand fw-bold" href="{% url 'dashboard' %}">
                 <i class="bi bi-shop me-2"></i>RestaurantMS
@@ -73,12 +122,8 @@
                             <i class="bi bi-people me-1"></i>Customers
                         </a>
                         <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="{% url 'customers:customer_list' %}">
-                                <i class="bi bi-list me-2"></i>All Customers
-                            </a></li>
-                            <li><a class="dropdown-item" href="{% url 'customers:customer_create' %}">
-                                <i class="bi bi-person-plus me-2"></i>Add Customer
-                            </a></li>
+                            <li><a class="dropdown-item" href="{% url 'customers:customer_list' %}"><i class="bi bi-list me-2"></i>All Customers</a></li>
+                            <li><a class="dropdown-item" href="{% url 'customers:customer_create' %}"><i class="bi bi-person-plus me-2"></i>Add Customer</a></li>
                         </ul>
                     </li>
                 </ul>
@@ -109,24 +154,13 @@
 
     <!-- Main Content -->
     <main class="container-fluid" style="margin-top: 76px; min-height: calc(100vh - 76px);">
-        <!-- Breadcrumb -->
         {% block breadcrumb %}{% endblock %}
-        
-        <!-- Messages -->
+
         {% if messages %}
             <div class="row">
                 <div class="col-12">
                     {% for message in messages %}
                         <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
-                            {% if message.tags == 'success' %}
-                                <i class="bi bi-check-circle me-2"></i>
-                            {% elif message.tags == 'error' %}
-                                <i class="bi bi-exclamation-triangle me-2"></i>
-                            {% elif message.tags == 'warning' %}
-                                <i class="bi bi-exclamation-circle me-2"></i>
-                            {% else %}
-                                <i class="bi bi-info-circle me-2"></i>
-                            {% endif %}
                             {{ message }}
                             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                         </div>
@@ -135,58 +169,16 @@
             </div>
         {% endif %}
 
-        <!-- Page Content -->
         {% block content %}{% endblock %}
     </main>
 
-    <!-- Footer -->
-    <footer class="bg-light text-center text-muted py-3 mt-5">
+    <footer class="text-center text-muted py-3 mt-5">
         <div class="container">
-            <small>&copy; 2024 Restaurant Management System. Built with Django & Bootstrap.</small>
+            <small>&copy; 2025 Restaurant Management System. Built by EngJoe at ITI summer training</small>
         </div>
     </footer>
 
-    <!-- Toast Container -->
-    <div class="toast-container position-fixed bottom-0 end-0 p-3" id="toastContainer">
-        <!-- Toasts will be dynamically added here -->
-    </div>
-
-    <!-- Modals -->
-    {% block modals %}{% endblock %}
-
-    <!-- JavaScript -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-    <script src="{% static 'js/main.js' %}"></script>
-    
     {% block extra_js %}{% endblock %}
-
-    <script>
-        // Initialize tooltips
-        document.addEventListener('DOMContentLoaded', function() {
-            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-            var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
-                return new bootstrap.Tooltip(tooltipTriggerEl);
-            });
-        });
-
-        // Global search functionality
-        document.getElementById('globalSearch').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const query = document.getElementById('quickSearchInput').value.trim();
-            if (query) {
-                // Redirect to appropriate search page based on current context
-                const currentPath = window.location.pathname;
-                if (currentPath.includes('/menu/')) {
-                    window.location.href = `{% url 'menu:item_list' %}?query=${encodeURIComponent(query)}`;
-                } else if (currentPath.includes('/customers/')) {
-                    window.location.href = `{% url 'customers:customer_list' %}?query=${encodeURIComponent(query)}`;
-                } else {
-                    // Default to menu search
-                    window.location.href = `{% url 'menu:item_list' %}?query=${encodeURIComponent(query)}`;
-                }
-            }
-        });
-    </script>
 </body>
 </html>

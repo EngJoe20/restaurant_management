@@ -595,7 +595,7 @@ body {
     }
 }
 
-/* Dark Mode Support */
+/* Dark Mode Support
 @media (prefers-color-scheme: dark) {
     :root {
         --light-color: #212529;
@@ -622,4 +622,4 @@ body {
         color: #f8f9fa;
         background-color: #2d3339;
     }
-}
+} */
