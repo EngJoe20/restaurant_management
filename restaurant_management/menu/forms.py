@@ -42,7 +42,7 @@ class ItemSearchForm(forms.Form):
         required=False
     )
     category = forms.ModelChoiceField(
-        queryset=Category.objects.all(),
+        queryset=Category.objects.none(),  
         empty_label="All Categories",
         required=False,
         widget=forms.Select(attrs={'class': 'form-control'})
@@ -52,3 +52,7 @@ class ItemSearchForm(forms.Form):
         initial=True,
         widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
     )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['category'].queryset = Category.objects.all()
