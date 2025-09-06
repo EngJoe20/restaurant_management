@@ -22,7 +22,7 @@
                     <td>{{ cat.name }}</td>
                     <td class="text-muted small">{{ cat.description|truncatechars:60 }}</td>
                     <td class="text-end">
-                        <a href="{% url 'menu:category_update' cat.pk %}"
+                        <a href="{% url 'menu:category_edit' cat.pk %}"
                            class="btn btn-sm btn-outline-primary">Edit</a>
                         <a href="{% url 'menu:category_delete' cat.pk %}"
                            class="btn btn-sm btn-outline-danger">Delete</a>

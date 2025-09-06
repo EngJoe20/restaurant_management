@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block title %}{{ customer.name }}{% endblock %}
+{% block content %}
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">{{ customer.name }}</h5>
+                    <p class="card-text small text-muted">
+                        {{ customer.email }}
+                        <br>
+                        {{ customer.phone }}
+                    </p>
+                    <p class="small">{{ customer.address|linebreaksbr }}</p>
+                    <a href="{% url 'customers:customer_edit' customer.pk %}" class="btn btn-sm btn-primary">Edit</a>
+                    <a href="{% url 'customers:customer_delete' customer.pk %}" class="btn btn-sm btn-danger">Delete</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <h6>Orders</h6>
+            <div class="list-group">
+                {% for order in customer.orders.all %}
+                    <a href="{% url 'orders:order_detail' order.pk %}"
+                       class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">Order #{{ order.id }}</h6>
+                            <small class="text-muted">{{ order.created_at|date:'M d, Y H:i' }}</small>
+                        </div>
+                        <p class="mb-1 small">Status: {{ order.get_status_display }}</p>
+                        <small class="text-muted">Items: {{ order.total_items }} — Total: {{ order.total_price }}</small>
+                    </a>
+                {% empty %}
+                    <div class="alert alert-info">No orders for this customer.</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+{% endblock %}

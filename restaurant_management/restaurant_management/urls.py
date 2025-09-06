@@ -18,10 +18,7 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
-from django.shortcuts import render
-
-def dashboard_view(request):
-    return render(request, 'dashboard.html')
+from dashboard.views import dashboard_view 
 
 urlpatterns = [
     path('admin/', admin.site.urls),

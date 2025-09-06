@@ -119,7 +119,7 @@ def add_items_to_order(request, order_id):
     
     if request.method == 'POST':
         form = OrderItemForm(request.POST)
-        if form.valid():
+        if form.is_valid():
             order_item = form.save(commit=False)
             order_item.order = order
             order_item.price = order_item.item.price  # Set current price
@@ -311,6 +311,8 @@ def orders_report(request):
     for status_code, status_name in Order.STATUS_CHOICES:
         count = orders.filter(status=status_code).count()
         orders_by_status[status_name] = count
+        
+    recent_orders = orders.select_related('customer').order_by('-created_at')[:10]
     
     # Daily sales (last 7 days)
     daily_sales = []
@@ -342,9 +344,11 @@ def orders_report(request):
         'orders_by_status': orders_by_status,
         'daily_sales': daily_sales,
         'top_customers': top_customers,
+        'recent_orders': recent_orders,  
     }
     
     return render(request, 'orders/report.html', context)
+    
 
 
 # Dashboard

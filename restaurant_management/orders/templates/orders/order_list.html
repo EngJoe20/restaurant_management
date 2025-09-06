@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% block title %}Orders{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb mb-3">
+    <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+    <li class="breadcrumb-item active">Orders</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between mb-3">
+  <h4>Orders</h4>
+  <a href="{% url 'orders:order_create' %}" class="btn btn-sm btn-primary">New Order</a>
+</div>
+
+<table class="table table-sm table-hover">
+  <thead>
+    <tr>
+      <th>#</th>
+      <th>Customer</th>
+      <th>Date</th>
+      <th>Status</th>
+      <th class="text-end">Total</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for order in orders %}
+      <tr>
+        <td><a href="{% url 'orders:order_detail' order.pk %}">#{{ order.id }}</a></td>
+        <td>{{ order.customer.name }}</td>
+        <td>{{ order.created_at|date:"M d, Y H:i" }}</td>
+        <td>{{ order.get_status_display }}</td>
+        <td class="text-end">{{ order.total_price }}</td>
+      </tr>
+    {% empty %}
+      <tr>
+        <td colspan="5">No orders found.</td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+{% if is_paginated %}
+  <nav class="d-flex justify-content-center">
+    <ul class="pagination">
+      {% if page_obj.has_previous %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+        </li>
+      {% endif %}
+      <li class="page-item active">
+        <span class="page-link">{{ page_obj.number }} / {{ paginator.num_pages }}</span>
+      </li>
+      {% if page_obj.has_next %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+        </li>
+      {% endif %}
+    </ul>
+  </nav>
+{% endif %}
+{% endblock %}
