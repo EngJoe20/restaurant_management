@@ -1,0 +1,474 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dashboard - Restaurant Management System{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stat-card {
+        transition: transform 0.2s ease-in-out;
+        border: none;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+    .stat-icon {
+        font-size: 2.5rem;
+    }
+    .chart-container {
+        position: relative;
+        height: 300px;
+    }
+    .recent-activity {
+        max-height: 400px;
+        overflow-y: auto;
+    }
+    .activity-item {
+        border-left: 3px solid #e9ecef;
+        transition: border-color 0.2s;
+    }
+    .activity-item:hover {
+        border-left-color: #0d6efd;
+        background-color: #f8f9fa;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h1 class="h2 mb-0">
+            <i class="bi bi-speedometer2 me-2"></i>Dashboard
+        </h1>
+        <p class="text-muted">Welcome to your restaurant management system</p>
+    </div>
+    <div class="col-auto">
+        <div class="btn-group" role="group">
+            <a href="{% url 'orders:quick_create' %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle me-1"></i>New Order
+            </a>
+            <a href="{% url 'menu:item_create' %}" class="btn btn-outline-primary">
+                <i class="bi bi-plus me-1"></i>Add Item
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card stat-card text-white bg-primary">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <h6 class="card-title text-uppercase mb-1">Today's Orders</h6>
+                        <h3 class="mb-0" id="todayOrders">0</h3>
+                        <small class="text-white-50">
+                            <i class="bi bi-arrow-up"></i> +12% from yesterday
+                        </small>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-cart-check stat-icon"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card stat-card text-white bg-success">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <h6 class="card-title text-uppercase mb-1">Today's Revenue</h6>
+                        <h3 class="mb-0" id="todayRevenue">$0</h3>
+                        <small class="text-white-50">
+                            <i class="bi bi-arrow-up"></i> +8% from yesterday
+                        </small>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-currency-dollar stat-icon"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card stat-card text-white bg-info">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <h6 class="card-title text-uppercase mb-1">Total Customers</h6>
+                        <h3 class="mb-0" id="totalCustomers">0</h3>
+                        <small class="text-white-50">
+                            <i class="bi bi-arrow-up"></i> +3 new this week
+                        </small>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-people stat-icon"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card stat-card text-white bg-warning">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <h6 class="card-title text-uppercase mb-1">Menu Items</h6>
+                        <h3 class="mb-0" id="menuItems">0</h3>
+                        <small class="text-white-50">
+                            <span id="availableItems">0</span> available
+                        </small>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-journal-text stat-icon"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts and Recent Activity -->
+<div class="row">
+    <!-- Sales Chart -->
+    <div class="col-xl-8 col-lg-7 mb-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-graph-up me-2"></i>Sales Overview
+                </h5>
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                        Last 7 Days
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="#" data-period="7">Last 7 Days</a></li>
+                        <li><a class="dropdown-item" href="#" data-period="30">Last 30 Days</a></li>
+                        <li><a class="dropdown-item" href="#" data-period="90">Last 3 Months</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="salesChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Activity -->
+    <div class="col-xl-4 col-lg-5 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-clock-history me-2"></i>Recent Activity
+                </h5>
+            </div>
+            <div class="card-body recent-activity">
+                <div id="recentActivity">
+                    <!-- Activity items will be loaded here -->
+                </div>
+            </div>
+            <div class="card-footer">
+                <a href="{% url 'orders:order_list' %}" class="btn btn-sm btn-outline-primary">
+                    View All Orders
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions and Status -->
+<div class="row">
+    <!-- Quick Actions -->
+    <div class="col-lg-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-lightning me-2"></i>Quick Actions
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-6">
+                        <a href="{% url 'orders:quick_create' %}" class="btn btn-outline-primary w-100">
+                            <i class="bi bi-plus-circle d-block mb-2" style="font-size: 1.5rem;"></i>
+                            New Order
+                        </a>
+                    </div>
+                    <div class="col-6">
+                        <a href="{% url 'customers:customer_create' %}" class="btn btn-outline-success w-100">
+                            <i class="bi bi-person-plus d-block mb-2" style="font-size: 1.5rem;"></i>
+                            Add Customer
+                        </a>
+                    </div>
+                    <div class="col-6">
+                        <a href="{% url 'menu:item_create' %}" class="btn btn-outline-warning w-100">
+                            <i class="bi bi-journal-plus d-block mb-2" style="font-size: 1.5rem;"></i>
+                            Add Menu Item
+                        </a>
+                    </div>
+                    <div class="col-6">
+                        <a href="{% url 'orders:report' %}" class="btn btn-outline-info w-100">
+                            <i class="bi bi-graph-up d-block mb-2" style="font-size: 1.5rem;"></i>
+                            View Reports
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Order Status Overview -->
+    <div class="col-lg-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-pie-chart me-2"></i>Order Status Overview
+                </h5>
+            </div>
+            <div class="card-body">
+                <div id="orderStatusChart" style="height: 200px;">
+                    <!-- Status chart will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Orders Table -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-table me-2"></i>Recent Orders
+                </h5>
+                <a href="{% url 'orders:order_list' %}" class="btn btn-sm btn-primary">
+                    View All Orders
+                </a>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover" id="recentOrdersTable">
+                        <thead>
+                            <tr>
+                                <th>Order #</th>
+                                <th>Customer</th>
+                                <th>Status</th>
+                                <th>Items</th>
+                                <th>Total</th>
+                                <th>Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recentOrdersBody">
+                            <!-- Orders will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Load dashboard data
+    loadDashboardData();
+    
+    // Initialize charts
+    initSalesChart();
+    initOrderStatusChart();
+    
+    // Auto-refresh data every 5 minutes
+    setInterval(loadDashboardData, 300000);
+});
+
+function loadDashboardData() {
+    // Simulate API call for dashboard data
+    // In real implementation, this would be AJAX calls to your views
+    
+    // Update statistics
+    document.getElementById('todayOrders').textContent = '24';
+    document.getElementById('todayRevenue').textContent = '$1,250';
+    document.getElementById('totalCustomers').textContent = '156';
+    document.getElementById('menuItems').textContent = '45';
+    document.getElementById('availableItems').textContent = '42';
+    
+    // Load recent activity
+    loadRecentActivity();
+    
+    // Load recent orders
+    loadRecentOrders();
+}
+
+function loadRecentActivity() {
+    const activities = [
+        { time: '5 min ago', text: 'New order #127 created by John Doe', type: 'order' },
+        { time: '12 min ago', text: 'Menu item "Caesar Salad" updated', type: 'menu' },
+        { time: '25 min ago', text: 'Customer "Jane Smith" added', type: 'customer' },
+        { time: '1 hour ago', text: 'Order #126 completed', type: 'order' },
+        { time: '2 hours ago', text: 'New category "Desserts" created', type: 'menu' }
+    ];
+    
+    const container = document.getElementById('recentActivity');
+    container.innerHTML = activities.map(activity => `
+        <div class="activity-item p-3 mb-2 rounded">
+            <div class="d-flex align-items-center">
+                <div class="flex-shrink-0 me-3">
+                    <i class="bi bi-${getActivityIcon(activity.type)} text-primary"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <p class="mb-1 small">${activity.text}</p>
+                    <small class="text-muted">${activity.time}</small>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+function getActivityIcon(type) {
+    const icons = {
+        'order': 'cart-check',
+        'menu': 'journal-text',
+        'customer': 'person-plus'
+    };
+    return icons[type] || 'circle';
+}
+
+function loadRecentOrders() {
+    // Simulate recent orders data
+    const orders = [
+        { id: 127, customer: 'John Doe', status: 'pending', items: 3, total: 45.99, date: '2024-01-15 14:30' },
+        { id: 126, customer: 'Jane Smith', status: 'delivered', items: 2, total: 32.50, date: '2024-01-15 13:45' },
+        { id: 125, customer: 'Mike Johnson', status: 'preparing', items: 5, total: 78.25, date: '2024-01-15 12:20' }
+    ];
+    
+    const tbody = document.getElementById('recentOrdersBody');
+    tbody.innerHTML = orders.map(order => `
+        <tr>
+            <td><strong>#${order.id}</strong></td>
+            <td>${order.customer}</td>
+            <td><span class="badge bg-${getStatusColor(order.status)}">${order.status}</span></td>
+            <td>${order.items}</td>
+            <td>${order.total}</td>
+            <td>${new Date(order.date).toLocaleDateString()}</td>
+            <td>
+                <a href="/orders/${order.id}/" class="btn btn-sm btn-outline-primary">
+                    <i class="bi bi-eye"></i>
+                </a>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function getStatusColor(status) {
+    const colors = {
+        'pending': 'warning',
+        'confirmed': 'info',
+        'preparing': 'primary',
+        'ready': 'success',
+        'delivered': 'success',
+        'cancelled': 'danger'
+    };
+    return colors[status] || 'secondary';
+}
+
+function initSalesChart() {
+    const ctx = document.getElementById('salesChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+            datasets: [{
+                label: 'Revenue ($)',
+                data: [850, 920, 1100, 980, 1250, 1400, 1200],
+                borderColor: '#0d6efd',
+                backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(0,0,0,0.1)'
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    }
+                }
+            }
+        }
+    });
+}
+
+function initOrderStatusChart() {
+    // Simple status overview without Chart.js for now
+    const statusData = [
+        { status: 'Pending', count: 8, color: '#ffc107' },
+        { status: 'Preparing', count: 5, color: '#0d6efd' },
+        { status: 'Ready', count: 3, color: '#198754' },
+        { status: 'Delivered', count: 12, color: '#6c757d' }
+    ];
+    
+    const container = document.getElementById('orderStatusChart');
+    container.innerHTML = statusData.map(item => `
+        <div class="d-flex align-items-center justify-content-between mb-3">
+            <div class="d-flex align-items-center">
+                <div class="me-3" style="width: 20px; height: 20px; background-color: ${item.color}; border-radius: 50%;"></div>
+                <span>${item.status}</span>
+            </div>
+            <span class="badge bg-light text-dark">${item.count}</span>
+        </div>
+    `).join('');
+}
+
+// Show toast notification
+function showToast(message, type = 'info') {
+    const toastContainer = document.getElementById('toastContainer');
+    const toastId = 'toast-' + Date.now();
+    
+    const toastHtml = `
+        <div id="${toastId}" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header">
+                <i class="bi bi-${type === 'success' ? 'check-circle' : 'info-circle'} me-2 text-${type}"></i>
+                <strong class="me-auto">Notification</strong>
+                <small>now</small>
+                <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+            </div>
+            <div class="toast-body">
+                ${message}
+            </div>
+        </div>
+    `;
+    
+    toastContainer.innerHTML += toastHtml;
+    const toast = new bootstrap.Toast(document.getElementById(toastId));
+    toast.show();
+}
+</script>
+{% endblock %}
