@@ -1,6 +1,6 @@
 ﻿# Restaurant Management System
 
-A comprehensive restaurant management system built with Django that helps manage customers, orders, menu items, and staff.
+A comprehensive restaurant management system built with Django that helps manage customers, orders, and menu items.
 
 ## Features
 
@@ -42,4 +42,5 @@ A comprehensive restaurant management system built with Django that helps manage
 git clone https://github.com/EngJoe20/restaurant_management.git# 
 
 restaurant_management
+
 
